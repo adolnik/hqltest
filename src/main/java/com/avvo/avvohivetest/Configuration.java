@@ -21,12 +21,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Configuration{
 
+    private static String filename = "";
+    private static String filePath = "";
+    private static Configuration conf = new Configuration();
+
     public static Configuration ReadConfig(String filename) throws Exception{
+        Configuration.filename = filename;
         Configuration conf = new Configuration();
         ObjectMapper objectMapper = new ObjectMapper();
         //objectMapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        conf = objectMapper.readValue(new File(filename), Configuration.class);
+        File file = new File( filename );
+        Configuration.filePath = file.getParent();
+        Configuration.conf = objectMapper.readValue(file, Configuration.class);
+        return Configuration.conf;
+    }
+
+    public static Configuration getCurrentConfiguration(){
         return conf;
     }
 
@@ -39,6 +50,14 @@ public class Configuration{
     @JsonProperty("targets")
     public ArrayList<Target> targets;
 
-    public Configuration() {
+    private Configuration() {
+    }
+
+    public String getFilename(){
+        return filename;
+    }
+
+    public String getPath(){
+        return Configuration.filePath;
     }
 }
