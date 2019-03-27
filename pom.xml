@@ -122,6 +122,12 @@
     </dependency>
 
     <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.9.0.pr2</version>
+    </dependency>
+
+    <dependency>
         <groupId>com.klarna</groupId>
         <artifactId>hiverunner</artifactId>
         <version>${klarna.hiverunner.version}</version>
