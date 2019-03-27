@@ -35,7 +35,7 @@ public class Configuration{
     @JsonProperty("databases")
     public ArrayList<String> databases;
     @JsonProperty("hive_variables")
-    public ArrayList<HiveVariables> hive_variables;
+    public ArrayList<Map<String, String>> hive_variables;
     @JsonProperty("targets")
     public ArrayList<Target> targets;
 
