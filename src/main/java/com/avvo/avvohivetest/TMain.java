@@ -3,6 +3,7 @@ package com.avvo.avvohivetest;
 import java.io.*;
 import org.junit.*;
 import org.junit.runner.*;
+import com.avvo.avvohivetest.config.Configuration;
 
 public class TMain
 {
@@ -16,22 +17,25 @@ public class TMain
 
     public static void main(String [] args)
     {
-
+        String configFile = "/home/adolnik/Develop/rrsoft/AvvoHiveTest/data/test_config.json";
+        Configuration conf = null;
         try {
-            String configFile = "/home/adolnik/Develop/rrsoft/AvvoHiveTest/data/test_config.json";
             System.out.println("Test project...");
-            Configuration conf = Configuration.ReadConfig(configFile);
-            System.out.println(conf.getFilename());
-
+            conf = Configuration.ReadConfig(configFile);
+            conf.targets.get(0).input_tables.get(0).getFields();
+            System.out.println(conf.targets.get(0).input_tables.get(0));
         }catch(Exception e){
             System.out.println(e.toString());
         }
 
-        //org.junit.runner.JUnitCore.main("com.avvo.avvohivetest.HelloHiveRunnerTest");
-        JUnitCore junit = new JUnitCore();
-        //junit.addListener(new TextListener(System.out));
-        Result result = junit.run(HelloHiveRunnerTest.class);
-        resultReport(result);
+        while(conf != null && conf.getCurrentTarget() != null){
+            //org.junit.runner.JUnitCore.main("com.avvo.avvohivetest.HelloHiveRunnerTest");
+            JUnitCore junit = new JUnitCore();
+            //junit.addListener(new TextListener(System.out));
+            Result result = junit.run(TableHiveRunnerTest.class);
+            resultReport(result);
+            conf.nextTarget();
+        }
     }
 
 }

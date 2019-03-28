@@ -1,10 +1,11 @@
 {
 "version" : 1,
 "databases": ["srcmgd", "dm"],
-"hive_variables": [ {"srcMgdDatabase": "srcmgd"}, {"dmDatabase": "dm"}],
+"hive_variables": {"srcMgdDatabase": "srcmgd", "dmDatabase": "dm"},
 "targets": [
    {
       "src" : "calculate_daily_mrr.hql",
+      "name" : "Target1",
       "input_tables" : [{
                   "database" : "srcmgd",
                   "name" : "mrr_sales_subscription",
@@ -18,10 +19,13 @@
                   "datafile" : "srcmgd_mrr_sales_subscription_price.csv"
                  }],
       "output_tables" : [
-        {"database" : "dm"},
-        {"name" : "mrr_sales_daily"},
-        {"fields" : "customer_id INT, total INT"},
-        {"datafile" : "dm_mrr_sales_daily.csv"}
+        {
+          "has_to_be_created" : false,
+          "database" : "dm",
+          "name" : "mrr_sales_daily",
+          "fields" : "customer_id INT, total INT",
+          "datafile" : "dm_mrr_sales_daily.csv"
+        }
 		]
    }]
 }

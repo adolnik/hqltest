@@ -1,4 +1,4 @@
-package com.avvo.avvohivetest;
+package com.avvo.avvohivetest.config;
 import java.util.*;
 import java.util.List;
 
@@ -46,7 +46,7 @@ public class Configuration{
     @JsonProperty("databases")
     public ArrayList<String> databases;
     @JsonProperty("hive_variables")
-    public ArrayList<Map<String, String>> hive_variables;
+    public Map<String, String> hive_variables;
     @JsonProperty("targets")
     public ArrayList<Target> targets;
 
@@ -59,5 +59,13 @@ public class Configuration{
 
     public String getPath(){
         return Configuration.filePath;
+    }
+
+    public Target getCurrentTarget() {
+        return null;
+    }
+
+    public void nextTarget(){
+
     }
 }
