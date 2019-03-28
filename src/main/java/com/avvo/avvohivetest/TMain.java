@@ -17,7 +17,7 @@ public class TMain
 
     public static void main(String [] args)
     {
-        String configFile = "/home/adolnik/Develop/rrsoft/AvvoHiveTest/data/test_config.json";
+        String configFile = args[0];
         Configuration conf = null;
         try {
             System.out.println("Test project...");

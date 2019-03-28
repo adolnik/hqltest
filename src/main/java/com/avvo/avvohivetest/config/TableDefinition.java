@@ -35,4 +35,8 @@ public class TableDefinition{
 
     @JsonProperty("datafile")
     public String datafile;
+
+    public String getCreateStatement(){
+        return "CREATE TABLE "+ database+"."+name+" (" + fieldsString + ");";
+    }
 }

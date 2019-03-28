@@ -49,6 +49,7 @@ public class Configuration{
     public Map<String, String> hive_variables;
     @JsonProperty("targets")
     public ArrayList<Target> targets;
+    private int current_target_pos = 0;
 
     private Configuration() {
     }
@@ -62,10 +63,14 @@ public class Configuration{
     }
 
     public Target getCurrentTarget() {
-        return null;
+        Target trg = null;
+        if(targets != null && targets.size() > 0 && current_target_pos < targets.size()){
+            trg = targets.get(current_target_pos);
+        }
+        return trg;
     }
 
     public void nextTarget(){
-
+        current_target_pos++;
     }
 }

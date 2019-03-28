@@ -1,29 +1,23 @@
-/**
- * Copyright (C) ${license.git.copyrightYears} Klarna AB
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.avvo.avvohivetest;
 
 import com.klarna.hiverunner.HiveShell;
 import com.klarna.hiverunner.StandaloneHiveRunner;
 import com.klarna.hiverunner.annotations.HiveSQL;
+import com.klarna.hiverunner.data.TsvFileParser;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.rules.TestName;
 
 import java.nio.file.Paths;
+import java.io.*;
+
+import java.io.File;
+import java.util.Arrays;
 import java.util.List;
+
+import com.avvo.avvohivetest.config.*;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -32,56 +26,72 @@ import static org.junit.Assert.assertEquals;
  * A basic Hive Runner example showing how to setup the test source database and target database, execute the query
  * and then validate the result.
  *
- * In this example we want to test some very simple code, calculate_max.sql, that calculate a max value by year.
- *
  * <p/>
  * All HiveRunner tests should run with the StandaloneHiveRunner and have a reference to HiveShell.
  */
 @RunWith(StandaloneHiveRunner.class)
 public class TableHiveRunnerTest {
+    @Rule
+    public TestName name = new TestName();
+
     @HiveSQL(files = {})
     private HiveShell shell;
 
-    @Before
-    public void setupSourceDatabase() {
-        shell.execute("CREATE DATABASE source_db");
-        shell.execute(new StringBuilder()
-                .append("CREATE TABLE source_db.test_table (")
-                .append("year STRING, value INT")
-                .append(")")
-                .toString());
-    }
+    private Configuration configurator = null;
 
     @Before
-    public void setupTargetDatabase() {
-        shell.execute(Paths.get("src/test/resources/helloHiveRunner/create_max.sql"));
+    public void setupSourceDatabase() {
+        configurator = Configuration.getCurrentConfiguration();
+
+        for(String db_name : configurator.databases) {
+            shell.execute("CREATE DATABASE " + db_name);
+        }
+
+        Target trg = configurator.getCurrentTarget();
+        for(TableDefinition tbl_def : trg.input_tables){
+            shell.execute(new StringBuilder()
+                    .append(tbl_def.getCreateStatement()).toString());
+        }
+    }
+
+    public void printResult(List<Object[]> result) {
+        System.out.println(String.format("Result from %s:",name.getMethodName()));
+        for (Object[] row : result) {
+            System.out.println(Arrays.asList(row));
+        }
     }
 
     @Test
-    public void testMaxValueByYear() {
-        /*
-         * Insert some source data
-         */
-        shell.insertInto("source_db", "test_table")
-                .withColumns("year", "value")
-                .addRow("2014", 3)
-                .addRow("2014", 4)
-                .addRow("2015", 2)
-                .addRow("2015", 5)
+    public void insertRowsIntoPartitionedTableStoredAsSequencefileWithCustomDelimiterAndNullValue() {
+        File dataFile = new File("/home/adolnik/Develop/rrsoft/AvvoHiveTest/data/data2.tsv");
+        shell.execute(new StringBuilder()
+                .append("CREATE TABLE dm.test_table2 (")
+                .append("col_a STRING, col_b BIGINT")
+                .append(")")
+                .append("partitioned by (col_c string)")
+                .append("stored as SEQUENCEFILE")
+                .toString());
+
+        shell.insertInto("dm", "test_table2")
+                .withAllColumns()
+                .addRowsFrom(dataFile, new TsvFileParser().withDelimiter(":").withNullValue("__NULL__"))
                 .commit();
 
-        /*
-         * Execute the query
-         */
-        shell.execute(Paths.get("src/test/resources/helloHiveRunner/calculate_max.sql"));
+        printResult(shell.executeStatement("select * from dm.test_table2"));
+    }
 
-        /*
-         * Verify the result
-         */
-        List<Object[]> result = shell.executeStatement("select * from my_schema.result");
+    @Test
+    public void insertRowsFromCode() {
+        Target trg = configurator.getCurrentTarget();
+        for(TableDefinition tbl_def : trg.input_tables){
+            String filePath = configurator.getPath() + "/" + tbl_def.datafile;
+            File dataFile = new File(filePath);
+            System.out.println("Data file is " + filePath);
+            TsvFileParser tsvFileParser = new TsvFileParser().withDelimiter(",").withNullValue("");
+            shell.insertInto(tbl_def.database, tbl_def.name).withAllColumns().addRowsFrom(dataFile, tsvFileParser).commit();
 
-        assertEquals(2, result.size());
-        assertArrayEquals(new Object[]{"2014", 4}, result.get(0));
-        assertArrayEquals(new Object[]{"2015", 5}, result.get(1));
+            printResult(shell.executeStatement("select count(*) from " + tbl_def.database + "." + tbl_def.name));
+        }
+
     }
 }

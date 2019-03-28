@@ -1,0 +1,31 @@
+{
+"version" : 1,
+"databases": ["srcmgd", "dm"],
+"hive_variables": {"srcMgdDatabase": "srcmgd", "dmDatabase": "dm"},
+"targets": [
+   {
+      "src" : "calculate_daily_mrr.hql",
+      "name" : "Target1",
+      "input_tables" : [{
+                  "database" : "srcmgd",
+                  "name" : "mrr_sales_subscription",
+                  "fields" : "id BIGINT, sales_order_id BIGINT, customer_id BIGINT, ad_id BIGINT,stopped_at STRING, expires_at STRING, created_at STRING,backorder_id BIGINT,expired_reason STRING,remnant BOOLEAN,lock_version INT, quote_id INT, expired_by INT",
+                  "datafile" : "srcmgd_mrr_sales_subscription.csv"
+                 },
+                 {
+                  "database" : "srcmgd",
+                  "name" : "mrr_sales_subscription_price",
+                  "fields" : "subscription_id BIGINT, promo_id INT, unit_price INT, starts_on STRING, block_count INT",
+                  "datafile" : "srcmgd_mrr_sales_subscription_price.csv"
+                 }],
+      "output_tables" : [
+        {
+          "has_to_be_created" : false,
+          "database" : "dm",
+          "name" : "mrr_sales_daily",
+          "fields" : "customer_id INT, total INT",
+          "datafile" : "dm_mrr_sales_daily.csv"
+        }
+		]
+   }]
+}
