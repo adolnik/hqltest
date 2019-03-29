@@ -88,7 +88,7 @@ public class TableHiveRunnerTest {
             String filePath = configurator.getPath() + tbl_def.datafile;
             File dataFile = new File(filePath);
             System.out.println("Data file is " + filePath);
-            TsvFileParser tsvFileParser = new TsvFileParser().withDelimiter(",").withNullValue("__NULL__");
+            TsvFileParser tsvFileParser = new TsvFileParser().withHeader().withDelimiter("\t").withNullValue("__NULL__");
 
             String state = "select * from " + tbl_def.database + "." + tbl_def.name;
             System.out.println(state);
