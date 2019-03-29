@@ -1,23 +1,13 @@
 package com.avvo.avvohivetest.config;
 import java.util.*;
-import java.util.List;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.HashMap;
 import java.util.Map;
-
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Configuration{
 
@@ -59,7 +49,7 @@ public class Configuration{
     }
 
     public String getPath(){
-        return Configuration.filePath;
+        return Configuration.filePath + "/";
     }
 
     public Target getCurrentTarget() {

@@ -1,9 +1,7 @@
 package com.avvo.avvohivetest.config;
 import java.util.*;
-import java.util.List;
 
 import com.avvo.avvohivetest.config.processor.TableField;
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TableDefinition{
@@ -37,6 +35,23 @@ public class TableDefinition{
     public String datafile;
 
     public String getCreateStatement(){
-        return "CREATE TABLE "+ database+"."+name+" (" + fieldsString + ");";
+        return "CREATE TABLE "+ database+"."+name+" (" + fieldsString + ")";
+    }
+
+    private String getListOfFields(){
+        String res = "";
+        if(fields == null){
+            getFields();
+        }
+
+        for(TableField tf : fields) {
+            res = res + tf.name + ",";
+        }
+        res = res.substring(0,res.length()-1);
+        return res;
+    }
+
+    public String getSelectStatement(){
+        return "SELECT " + getListOfFields() + " FROM "+ database+"."+name;
     }
 }

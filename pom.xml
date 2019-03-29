@@ -130,7 +130,6 @@
         <groupId>com.klarna</groupId>
         <artifactId>hiverunner</artifactId>
         <version>${klarna.hiverunner.version}</version>
-        <scope>provided</scope>
     </dependency>
 
   </dependencies>

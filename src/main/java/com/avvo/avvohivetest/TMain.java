@@ -1,8 +1,7 @@
 package com.avvo.avvohivetest;
 
-import java.io.*;
-import org.junit.*;
 import org.junit.runner.*;
+import org.junit.internal.TextListener;
 import com.avvo.avvohivetest.config.Configuration;
 
 public class TMain
@@ -20,22 +19,23 @@ public class TMain
         String configFile = args[0];
         Configuration conf = null;
         try {
-            System.out.println("Test project...");
+            System.out.println("Test project... " + configFile);
             conf = Configuration.ReadConfig(configFile);
             conf.targets.get(0).input_tables.get(0).getFields();
-            System.out.println(conf.targets.get(0).input_tables.get(0));
         }catch(Exception e){
             System.out.println(e.toString());
         }
 
         while(conf != null && conf.getCurrentTarget() != null){
+            System.out.println("Start the first test");
             //org.junit.runner.JUnitCore.main("com.avvo.avvohivetest.HelloHiveRunnerTest");
             JUnitCore junit = new JUnitCore();
-            //junit.addListener(new TextListener(System.out));
+            junit.addListener(new TextListener(System.out));
             Result result = junit.run(TableHiveRunnerTest.class);
+
+            System.out.println("Finish the first test");
             resultReport(result);
-            conf.nextTarget();
+           conf.nextTarget();
         }
     }
-
 }
