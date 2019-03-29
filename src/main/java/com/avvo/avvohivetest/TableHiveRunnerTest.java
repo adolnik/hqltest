@@ -13,6 +13,7 @@ import org.junit.runner.RunWith;
 import org.junit.rules.TestName;
 
 import java.io.File;
+import java.io.PrintStream;
 import java.util.*;
 
 import java.io.StringWriter;
@@ -72,11 +73,12 @@ public class TableHiveRunnerTest {
             shell.setHiveVarValue(key, configurator.hive_variables.get(key));
         }
 
-        System.out.println("Starting hive server");
+        System.out.println("Starting hive server...");
         shell.start();
 
-        System.out.println("Prepare to run tests. Create database");
+        System.out.println("Creating databases...");
         for(String db_name : configurator.databases) {
+            System.out.println("Create database " + db_name); 
             shell.execute("CREATE DATABASE " + db_name);
         }
 
@@ -89,20 +91,16 @@ public class TableHiveRunnerTest {
                         .append(tbl_def.getCreateStatement()).toString());
             }
 
+            System.out.println("Going to seed test data in " + tbl_def.name);
             String filePath = configurator.getPath() + tbl_def.datafile;
             File dataFile = new File(filePath);
-            System.out.println("Data file is " + filePath);
+            System.out.println("Seeding file " + filePath);
             TsvFileParser tsvFileParser = new TsvFileParser().withHeader().withDelimiter("\t").withNullValue("__NULL__");
 
-            String state = "select * from " + tbl_def.database + "." + tbl_def.name;
-            System.out.println(state);
-
             try {
-                //https://github.com/klarna/HiveRunner/blob/master/src/test/java/com/klarna/hiverunner/examples/InsertTestData.java
                 shell.insertInto(tbl_def.database, tbl_def.name).withAllColumns().addRowsFrom(dataFile, tsvFileParser).commit();
-                printResult(shell.executeStatement(state));
             }catch (Exception e){
-                System.out.println("ERROR: Incorrect file");
+                System.out.println("ERROR: Invalid file");
                 System.out.println(e);
             }
 
@@ -123,32 +121,28 @@ public class TableHiveRunnerTest {
         String filePath = configurator.getPath() + trg.src;
 
         File hql_script_file = new File(filePath);
-        System.out.println("Starting the test, HQL query");
         // Move clean HQL query
         this.filterHQLFile(filePath);
 
-        String phase = "Execute HQL statement";
         try {
             shell.execute(hql_script_file);
 
-            phase = "Get tests results";
             for(TableDefinition tbl_def : trg.output_tables) {
                 String sql_statement = tbl_def.getSelectStatement();
                 System.out.println(sql_statement);
                 List<Object[]> actual = shell.executeStatement(sql_statement);
                 printResult(actual);
-                compareToRefData("Problem with SQL ref sequence " + sql_statement, actual, tbl_def.datafile);
+                compareToRefData("Failed test: " + trg.name + ", table " + tbl_def.name,
+                                 actual, tbl_def.datafile);
             }
         }catch(Exception ex){
-            System.out.println("Errors detected on phase: " + phase);
             System.out.println(ex);
-
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
             ex.printStackTrace(pw);
             String sStackTrace = sw.toString(); // stack trace as a string
             System.out.println(sStackTrace);
-            Assert.assertSame("Exception occur: " + ex.getMessage(),null, "NaN");
+            Assert.assertSame("Exception: " + ex.getMessage(),null, "NaN");
         }
     }
 
@@ -160,11 +154,13 @@ public class TableHiveRunnerTest {
         while (br.ready()) {
             result.add(br.readLine());
         }
+        // Ignore a header
+        result.remove(0);
 
-        List<String> actualRes = actual.stream().map(x -> DigestUtils.md5Hex(Arrays.toString(x))).collect(Collectors.toList());
+        List<String> actualRes = actual.stream().map(x -> Arrays.toString(x)).collect(Collectors.toList());
         actualRes.sort(String.CASE_INSENSITIVE_ORDER);
 
-        List<String> refRes = result.stream().map(x -> DigestUtils.md5Hex(Arrays.toString(x.split("\t")))).collect(Collectors.toList());
+        List<String> refRes = result.stream().map(x -> Arrays.toString(x.split("\t"))).collect(Collectors.toList());
         refRes.sort(String.CASE_INSENSITIVE_ORDER);
 
         assertEquals(sql_st, actualRes, refRes);

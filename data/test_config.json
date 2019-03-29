@@ -5,7 +5,7 @@
 "targets": [
    {
       "src" : "calculate_daily_mrr.hql",
-      "name" : "Target1",
+      "name" : "Daily MRR for two customers",
       "input_tables" : [{
                   "database" : "srcmgd",
                   "name" : "mrr_sales_subscription",

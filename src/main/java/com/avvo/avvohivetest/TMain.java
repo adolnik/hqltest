@@ -12,14 +12,20 @@ import java.io.PrintStream;
 public class TMain
 {
     public static void resultReport(Result result) {
-        System.out.println("Finished. Result: Failures: " +
-                result.getFailureCount() + ". Ignored: " +
-                result.getIgnoreCount() + ". Tests run: " +
-                result.getRunCount() + ". Time: " +
-                result.getRunTime() + "ms.");
+        int succeeded = result.getRunCount() - result.getFailureCount() -
+                        result.getIgnoreCount();
+
+        System.out.println(result.getRunCount() + " test(s) in " +
+            result.getRunTime() + "ms. " + succeeded + " passed, " + 
+            result.getFailureCount() + " failed, " +
+            result.getIgnoreCount() + " ignored.");
+
         for (Failure fail:result.getFailures() ) {
-            System.out.println(fail.getMessage() + " Description:" + fail.getDescription());
-            System.exit(1);
+            System.out.println(fail.getMessage() + " " + fail.getDescription());
+        }
+
+        if (!result.wasSuccessful()) {
+          System.exit(1);
         }
 
     }
@@ -31,7 +37,7 @@ public class TMain
         String configFile = args[0];
         Configuration conf = null;
         try {
-            System.out.println("Test project... " + configFile);
+            System.out.println("Configuration file: " + configFile);
             conf = Configuration.ReadConfig(configFile);
             conf.targets.get(0).input_tables.get(0).getFields();
         }catch(Exception e){
@@ -39,10 +45,7 @@ public class TMain
         }
 
         while(conf != null && conf.getCurrentTarget() != null){
-            System.out.println("Start the first test");
-            //org.junit.runner.JUnitCore.main("com.avvo.avvohivetest.TableHiveRunnerTest");
             JUnitCore junit = new JUnitCore();
-            //junit.addListener(new TextListener(System.out));
             Result result = junit.run(TableHiveRunnerTest.class);
 
             // replace the System.out, here I redirect to NUL
@@ -51,15 +54,14 @@ public class TMain
                 FileOutputStream fos=new FileOutputStream("test_report.txt");
                 PrintStream printStream = new PrintStream(fos);
                 System.setOut(printStream);
-                System.out.println("Finish the first test");
                 resultReport(result);
             }
             catch(IOException ex){
 
                 System.out.println(ex.getMessage());
             }
-            conf.nextTarget();
 
+            conf.nextTarget();
         }
     }
 }
