@@ -3,6 +3,7 @@ package com.avvo.avvohivetest;
 import org.junit.runner.*;
 import org.junit.internal.TextListener;
 import com.avvo.avvohivetest.config.Configuration;
+import org.junit.runner.notification.Failure;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -16,6 +17,11 @@ public class TMain
                 result.getIgnoreCount() + ". Tests run: " +
                 result.getRunCount() + ". Time: " +
                 result.getRunTime() + "ms.");
+        for (Failure fail:result.getFailures() ) {
+            System.out.println(fail.getMessage() + " Description:" + fail.getDescription());
+            System.exit(1);
+        }
+
     }
 
     public static void main(String [] args)

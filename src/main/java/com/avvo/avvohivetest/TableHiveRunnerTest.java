@@ -4,6 +4,7 @@ import com.klarna.hiverunner.HiveShell;
 import com.klarna.hiverunner.StandaloneHiveRunner;
 import com.klarna.hiverunner.annotations.HiveSQL;
 import com.klarna.hiverunner.data.TsvFileParser;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.Before;
@@ -22,6 +23,9 @@ import com.avvo.avvohivetest.config.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.stream.Collectors;
+
+import static org.junit.Assert.*;
 
 /**
  * A basic Hive Runner example showing how to setup the test source database and target database, execute the query
@@ -133,9 +137,8 @@ public class TableHiveRunnerTest {
                 System.out.println(sql_statement);
                 List<Object[]> actual = shell.executeStatement(sql_statement);
                 printResult(actual);
-                compareToRefData(actual, tbl_def.datafile);
+                compareToRefData("Problem with SQL ref sequence " + sql_statement, actual, tbl_def.datafile);
             }
-            Assert.assertEquals(0,1);
         }catch(Exception ex){
             System.out.println("Errors detected on phase: " + phase);
             System.out.println(ex);
@@ -145,11 +148,11 @@ public class TableHiveRunnerTest {
             ex.printStackTrace(pw);
             String sStackTrace = sw.toString(); // stack trace as a string
             System.out.println(sStackTrace);
-
+            Assert.assertSame("Exception occur: " + ex.getMessage(),null, "NaN");
         }
     }
 
-    private void compareToRefData(List<Object[]> actual, String datafile) throws Exception {
+    private void compareToRefData(String sql_st, List<Object[]> actual, String datafile) throws Exception {
         File ref_file = new File(configurator.getPath() + datafile);
         ArrayList<String> result = new ArrayList<String>();
 
@@ -158,9 +161,13 @@ public class TableHiveRunnerTest {
             result.add(br.readLine());
         }
 
-        System.out.println("Check table rows count");
-        // Check the size of outputArray
-        Assert.assertEquals(result.size(),actual.size());
+        List<String> actualRes = actual.stream().map(x -> DigestUtils.md5Hex(Arrays.toString(x))).collect(Collectors.toList());
+        actualRes.sort(String.CASE_INSENSITIVE_ORDER);
+
+        List<String> refRes = result.stream().map(x -> DigestUtils.md5Hex(Arrays.toString(x.split("\t")))).collect(Collectors.toList());
+        refRes.sort(String.CASE_INSENSITIVE_ORDER);
+
+        assertEquals(sql_st, actualRes, refRes);
     }
 
 }
