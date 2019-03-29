@@ -68,6 +68,7 @@ public class TableHiveRunnerTest {
             shell.setHiveVarValue(key, configurator.hive_variables.get(key));
         }
 
+        System.out.println("Starting hive server");
         shell.start();
 
         System.out.println("Prepare to run tests. Create database");
@@ -150,12 +151,11 @@ public class TableHiveRunnerTest {
 
     private void compareToRefData(List<Object[]> actual, String datafile) throws Exception {
         File ref_file = new File(configurator.getPath() + datafile);
-        ArrayList<String> result = new ArrayList<>();
+        ArrayList<String> result = new ArrayList<String>();
 
-        try (BufferedReader br = new BufferedReader(new FileReader(ref_file))) {
-            while (br.ready()) {
-                result.add(br.readLine());
-            }
+        BufferedReader br = new BufferedReader(new FileReader(ref_file));
+        while (br.ready()) {
+            result.add(br.readLine());
         }
 
         System.out.println("Check table rows count");

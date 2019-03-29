@@ -89,7 +89,6 @@
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-contrib</artifactId>
       <version>${hive.version}</version>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -104,15 +103,13 @@
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-all</artifactId>
       <version>1.3</version>
-      <scope>provided</scope>
-    </dependency>
+     </dependency>
 
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <version>2.18.3</version>
-      <scope>provided</scope>
-    </dependency>
+     </dependency>
 
     <dependency>
       <groupId>junit</groupId>
@@ -135,13 +132,45 @@
   </dependencies>
 
   <build>
-    <plugins>
+<plugins>
+  <plugin> 
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-dependency-plugin</artifactId>
+    <version>2.5.1</version>
+    <configuration>
+        <outputDirectory>
+            ${project.build.directory}/lib/
+        </outputDirectory>
+        <overWriteReleases>false</overWriteReleases>
+        <overWriteSnapshots>false</overWriteSnapshots>
+        <overWriteIfNewer>true</overWriteIfNewer>
+    </configuration>
+    <executions>
+        <execution> 
+            <id>copy-dependencies</id>
+            <phase>package</phase>
+            <goals>
+                <goal>copy-dependencies</goal>
+            </goals>
+        </execution>
+    </executions>
+  </plugin>
       <!-- forkMode:always resolves OOM error when running unit tests -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.21.0</version>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.1.1</version>
         <configuration>
+          <descriptorRefs>
+              <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <archive>
+            <manifest>
+               <addClasspath>true</addClasspath>
+               <classpathPrefix>lib/</classpathPrefix>
+               <mainClass>com.avvo.avvohivetest.TMain</mainClass>
+            </manifest>
+          </archive>
           <!-- Hiverunner need this for some queries (property -XX:MaxPermSize
             was removed in java 8) -->
           <argLine>-Xmx2024m</argLine>
@@ -158,52 +187,16 @@
                 <timeoutSeconds>30</timeoutSeconds>
                 <timeoutRetries>2</timeoutRetries>
           </systemProperties>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.7.0</version>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>3.1.1</version>
-        <configuration>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-             <archive>
-                    <manifest>
-                        <!-- <addClasspath>true</addClasspath> -->
-                        <mainClass>com.avvo.avvohivetest.TMain</mainClass>
-                    </manifest>
-            </archive>
-        </configuration>
-        <executions>
-          <execution>
-            <id>make-assembly</id> <!-- this is used for inheritance merges -->
-            <phase>package</phase> <!-- bind to the packaging phase -->
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-            <version>3.1.0</version>
-        <configuration>
-            <archive>
-                    <manifest>
-                        <!-- <addClasspath>true</addClasspath> -->
-                        <mainClass>com.avvo.avvohivetest.TMain</mainClass>
-                    </manifest>
-            </archive>
+            <executions>
+              <execution>
+                <id>make-assembly</id> <!-- this is used for inheritance merges -->
+                <phase>package</phase> <!-- bind to the packaging phase -->
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+
         </configuration>
       </plugin>
       <plugin>
